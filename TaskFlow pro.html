@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow Pro - Advanced Time Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #0a0a0f;
+            --secondary-bg: #1a1a2e;
+            --accent-bg: #16213e;
+            --card-bg: rgba(15, 15, 35, 0.95);
+            --border-primary: #00d9ff;
+            --border-secondary: #7c3aed;
+            --text-primary: #e2e8f0;
+            --text-secondary: #9ca3af;
+            --text-accent: #00ff88;
+            --warning: #fbbf24;
+            --error: #ef4444;
+            --success: #22c55e;
+            --info: #3b82f6;
+            --shadow-glow: 0 0 30px rgba(0, 217, 255, 0.15);
+            --shadow-purple: 0 0 30px rgba(124, 58, 237, 0.15);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 50%, var(--accent-bg) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 255, 136, 0.05) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-20px) translateY(-10px); }
+            50% { transform: translateX(20px) translateY(10px); }
+            75% { transform: translateX(-10px) translateY(20px); }
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        .main-stopwatch {
+            background: var(--card-bg);
+            border: 2px solid var(--border-primary);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-glow), 0 25px 50px rgba(0, 0, 0, 0.3);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            transition: var(--transition);
+        }
+
+        .main-stopwatch:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow), 0 35px 70px rgba(0, 0, 0, 0.4);
+        }
+
+        .task-management {
+            background: var(--card-bg);
+            border: 2px solid var(--border-secondary);
+            border-radius: 24px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-purple), 0 25px 50px rgba(0, 0, 0, 0.3);
+            max-height: 100vh;
+            overflow-y: auto;
+            transition: var(--transition);
+        }
+
+        .task-management:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-purple), 0 35px 70px rgba(0, 0, 0, 0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(45deg, var(--border-primary), var(--border-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(45deg, var(--border-primary), var(--border-secondary));
+            border-radius: 1px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .main-timer {
+            text-align: center;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .time-display {
+            font-size: 4.5rem;
+            font-weight: 700;
+            margin: 20px 0;
+            color: var(--text-accent);
+            text-shadow: 0 0 40px rgba(0, 255, 136, 0.6);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 4px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .time-display::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120%;
+            height: 120%;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 16px;
+            animation: borderPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes borderPulse {
+            0%, 100% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        .milliseconds {
+            font-size: 2.5rem;
+            color: var(--warning);
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            min-width: 100px;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 1px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, var(--text-accent), #00cc6a);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-stop {
+            background: linear-gradient(45deg, var(--error), #ff3742);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-reset {
+            background: linear-gradient(45deg, var(--warning), #f59e0b);
+            color: #000;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+        }
+
+        .btn-lap {
+            background: linear-gradient(45deg, var(--border-primary), #0ea5e9);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--error);
+            margin: 0 auto 20px;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .status-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--error);
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+
+        .status-indicator.running {
+            background: var(--text-accent);
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+
+        .status-indicator.running::before {
+            border-color: var(--text-accent);
+            animation: statusRing 2s ease-in-out infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        @keyframes statusRing {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+
+        .laps-section {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            max-height: 350px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .laps-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+        }
+
+        .laps-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 2px;
+            background: var(--border-primary);
+            border-radius: 1px;
+        }
+
+        .lap-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lap-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(45deg, var(--border-primary), var(--text-accent));
+        }
+
+        .lap-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .lap-number {
+            color: var(--border-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .lap-time {
+            color: var(--text-accent);
+            font-weight: 500;
+        }
+
+        .task-form {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .task-form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--border-secondary), var(--border-primary));
+            border-radius: 20px 20px 0 0;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--border-secondary);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 90px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn-add-task {
+            background: linear-gradient(45deg, var(--border-secondary), #a855f7);
+            color: #fff;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-add-task::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn-add-task:hover::before {
+            left: 100%;
+        }
+
+        .btn-add-task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-add-task:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .tasks-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .task-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .task-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(45deg, var(--border-secondary), #a855f7);
+            transition: var(--transition);
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-card.urgent::before {
+            background: linear-gradient(45deg, var(--error), #dc2626);
+        }
+
+        .task-card.completed::before {
+            background: linear-gradient(45deg, var(--success), #16a34a);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 18px;
+        }
+
+        .task-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .task-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .task-timer {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            margin: 18px 0;
+            position: relative;
+        }
+
+        .task-timer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--warning), var(--text-accent));
+            border-radius: 16px 16px 0 0;
+        }
+
+        .task-timer-display {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .task-timer-display.countdown {
+            color: var(--warning);
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+
+        .task-timer-display.expired {
+            color: var(--error);
+            animation: timerBlink 1.5s infinite;
+            text-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
+        }
+
+        .task-timer-display.completed {
+            color: var(--success);
+            text-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
+
+        .task-timer-display.running {
+            color: var(--text-accent);
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        @keyframes timerBlink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.4; }
+        }
+
+        .task-controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .task-btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            min-width: 80px;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.4s;
+        }
+
+        .task-btn:hover::before {
+            left: 100%;
+        }
+
+        .task-btn-start { /* This class will be reused for resume */
+            background: linear-gradient(45deg, var(--success), #16a34a);
+            color: #fff;
+        }
+
+        .task-btn-pause {
+            background: linear-gradient(45deg, var(--warning), #f59e0b);
+            color: #000;
+        }
+
+        .task-btn-complete {
+            background: linear-gradient(45deg, var(--border-primary), #0ea5e9);
+            color: #000;
+        }
+
+        .task-btn-delete {
+            background: linear-gradient(45deg, var(--error), #dc2626);
+            color: #fff;
+        }
+
+        .task-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .task-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .task-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 18px;
+            position: relative;
+        }
+
+        .task-progress::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: progressShimmer 2s infinite;
+        }
+
+        @keyframes progressShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .task-progress-bar {
+            height: 100%;
+            background: linear-gradient(45deg, var(--border-secondary), #a855f7);
+            transition: width 0.6s ease;
+            position: relative;
+        }
+
+        .task-progress-bar.urgent {
+            background: linear-gradient(45deg, var(--error), #dc2626);
+        }
+
+        .task-progress-bar.completed {
+            background: linear-gradient(45deg, var(--success), #16a34a);
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .task-status {
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+        }
+
+        .task-status.running {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .task-status.paused {
+            background: rgba(251, 191, 36, 0.2);
+            color: var(--warning);
+            border-color: var(--warning);
+        }
+
+        .task-status.completed {
+            background: rgba(0, 217, 255, 0.2);
+            color: var(--border-primary);
+            border-color: var(--border-primary);
+        }
+
+        .task-status.expired {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+            border-color: var(--error);
+        }
+
+        .task-status.pending {
+            background: rgba(156, 163, 175, 0.2);
+            color: var(--text-secondary);
+            border-color: var(--text-secondary);
+        }
+
+        .shortcuts {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .shortcuts-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 18px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .shortcut {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .shortcut:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .shortcut-key {
+            font-weight: 600;
+            color: var(--border-secondary);
+            background: rgba(124, 58, 237, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, var(--error), #dc2626);
+            color: white;
+            padding: 16px 28px;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            font-weight: 600;
+            animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 320px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Enhanced scrollbar styling */
+        .task-management::-webkit-scrollbar,
+        .laps-section::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .task-management::-webkit-scrollbar-track,
+        .laps-section::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .task-management::-webkit-scrollbar-thumb,
+        .laps-section::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, var(--border-secondary), #a855f7);
+            border-radius: 10px;
+            border: 2px solid rgba(0, 0, 0, 0.3);
+        }
+
+        .task-management::-webkit-scrollbar-thumb:hover,
+        .laps-section::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #a855f7, var(--border-primary));
+        }
+
+        /* Loading animation for tasks */
+        .task-loading {
+            opacity: 0;
+            animation: taskFadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes taskFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .main-stopwatch {
+                position: relative;
+            }
+            
+            .time-display {
+                font-size: 3.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .time-display {
+                font-size: 2.8rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 220px;
+            }
+
+            .time-inputs {
+                grid-template-columns: 1fr;
+            }
+
+            .task-controls {
+                flex-direction: column;
+            }
+
+            .task-btn {
+                width: 100%;
+            }
+
+            .shortcuts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-stopwatch,
+            .task-management {
+                padding: 20px;
+            }
+
+            .time-display {
+                font-size: 2.2rem;
+            }
+
+            .milliseconds {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Main Stopwatch Section -->
+        <div class="main-stopwatch">
+            <div class="header">
+                <div class="logo">⚡ TaskFlow Pro ⚡</div>
+                <div class="subtitle">// Advanced Time Management System</div>
+            </div>
+            
+            <div class="status-indicator" id="statusIndicator"></div>
+            
+            <div class="main-timer">
+                <div class="time-display">
+                    <span id="timeDisplay">00:00:00</span>
+                    <span class="milliseconds" id="millisecondsDisplay">.000</span>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-start" id="startBtn">Start</button>
+                    <button class="btn btn-stop" id="stopBtn">Stop</button>
+                    <button class="btn btn-reset" id="resetBtn">Reset</button>
+                    <button class="btn btn-lap" id="lapBtn">Lap</button>
+                </div>
+            </div>
+
+            <!-- Laps Section -->
+            <div class="laps-section" id="lapsSection" style="display: none;">
+                <div class="laps-title">// Lap Times</div>
+                <div id="lapsList"></div>
+            </div>
+            
+            <div class="shortcuts">
+                <div class="shortcuts-title">// Keyboard Shortcuts</div>
+                <div class="shortcuts-grid">
+                    <div class="shortcut">
+                        <span>Start/Stop</span>
+                        <span class="shortcut-key">Space</span>
+                    </div>
+                    <div class="shortcut">
+                        <span>Reset</span>
+                        <span class="shortcut-key">R</span>
+                    </div>
+                    <div class="shortcut">
+                        <span>Lap</span>
+                        <span class="shortcut-key">L</span>
+                    </div>
+                    <div class="shortcut">
+                        <span>Add Task</span>
+                        <span class="shortcut-key">Ctrl+N</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task Management Section -->
+        <div class="task-management">
+            <div class="header">
+                <div class="logo">📋 Task Manager</div>
+                <div class="subtitle">// Create and track your tasks with precision</div>
+            </div>
+            
+            <!-- Task Creation Form -->
+            <div class="task-form">
+                <div class="form-group">
+                    <label class="form-label">// Task Title *</label>
+                    <input type="text" class="form-input" id="taskTitle" placeholder="Enter task title..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">// Description</label>
+                    <textarea class="form-input form-textarea" id="taskDescription" placeholder="Describe your task..."></textarea>
+                </div>
+                
+                <div class="time-inputs">
+                    <div class="form-group">
+                        <label class="form-label">// Start Time *</label>
+                        <input type="datetime-local" class="form-input" id="startTime" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">// Due Time *</label>
+                        <input type="datetime-local" class="form-input" id="dueTime" required>
+                    </div>
+                </div>
+                
+                <button class="btn-add-task" id="addTaskBtn">+ Add Task</button>
+            </div>
+            
+            <!-- Tasks Container -->
+            <div class="tasks-container" id="tasksContainer">
+                <!-- Tasks will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class TaskFlowApp {
+            constructor() {
+                this.mainStopwatch = {
+                    startTime: 0,
+                    elapsedTime: 0,
+                    timerInterval: null,
+                    isRunning: false,
+                    laps: []
+                };
+                
+                this.tasks = [];
+                this.taskIdCounter = 0;
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.updateMainDisplay();
+                this.setDefaultTimes();
+                this.loadFromStorage();
+                this.startGlobalTimer();
+                
+                // Add welcome message
+                setTimeout(() => {
+                    this.showNotification('Welcome to TaskFlow Pro! 🚀', 'success');
+                }, 1000);
+            }
+            
+            initializeElements() {
+                // Main stopwatch elements
+                this.timeDisplay = document.getElementById('timeDisplay');
+                this.millisecondsDisplay = document.getElementById('millisecondsDisplay');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.lapBtn = document.getElementById('lapBtn');
+                this.statusIndicator = document.getElementById('statusIndicator');
+                this.lapsSection = document.getElementById('lapsSection');
+                this.lapsList = document.getElementById('lapsList');
+                
+                // Task form elements
+                this.taskTitle = document.getElementById('taskTitle');
+                this.taskDescription = document.getElementById('taskDescription');
+                this.startTime = document.getElementById('startTime');
+                this.dueTime = document.getElementById('dueTime');
+                this.addTaskBtn = document.getElementById('addTaskBtn');
+                this.tasksContainer = document.getElementById('tasksContainer');
+            }
+            
+            bindEvents() {
+                // Main stopwatch events
+                this.startBtn.addEventListener('click', () => this.startMainStopwatch());
+                this.stopBtn.addEventListener('click', () => this.stopMainStopwatch());
+                this.resetBtn.addEventListener('click', () => this.resetMainStopwatch());
+                this.lapBtn.addEventListener('click', () => this.lapMainStopwatch());
+                
+                // Task management events
+                this.addTaskBtn.addEventListener('click', () => this.addTask());
+                
+                // Form validation
+                this.taskTitle.addEventListener('input', () => this.validateForm());
+                this.startTime.addEventListener('change', () => this.validateForm());
+                this.dueTime.addEventListener('change', () => this.validateForm());
+                
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                    
+                    switch(e.code) {
+                        case 'Space':
+                            e.preventDefault();
+                            this.mainStopwatch.isRunning ? this.stopMainStopwatch() : this.startMainStopwatch();
+                            break;
+                        case 'KeyR':
+                            e.preventDefault();
+                            this.resetMainStopwatch();
+                            break;
+                        case 'KeyL':
+                            e.preventDefault();
+                            if (this.mainStopwatch.isRunning) this.lapMainStopwatch();
+                            break;
+                        case 'KeyN':
+                            if (e.ctrlKey) {
+                                e.preventDefault();
+                                this.taskTitle.focus();
+                            }
+                            break;
+                    }
+                });
+
+                // Auto-save on page unload
+                window.addEventListener('beforeunload', () => {
+                    this.saveToStorage();
+                });
+
+                // Add form enter key handling
+                this.taskTitle.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !this.addTaskBtn.disabled) {
+                        this.addTask();
+                    }
+                });
+            }
+            
+            validateForm() {
+                const title = this.taskTitle.value.trim();
+                const startTime = this.startTime.value;
+                const dueTime = this.dueTime.value;
+                
+                let isValid = title && startTime && dueTime;
+                
+                if (startTime && dueTime) {
+                    const start = new Date(startTime);
+                    const due = new Date(dueTime);
+                    if (start >= due) {
+                        isValid = false;
+                    }
+                }
+                
+                this.addTaskBtn.disabled = !isValid;
+                
+                // Visual feedback
+                if (title) {
+                    this.taskTitle.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                } else {
+                    this.taskTitle.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                }
+            }
+            
+            setDefaultTimes() {
+                const now = new Date();
+                const startTime = new Date(now.getTime() + 5 * 60000); // 5 minutes from now
+                const dueTime = new Date(now.getTime() + 65 * 60000); // 65 minutes from now
+                
+                this.startTime.value = this.formatDateTimeLocal(startTime);
+                this.dueTime.value = this.formatDateTimeLocal(dueTime);
+                this.validateForm();
+            }
+            
+            formatDateTimeLocal(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+            
+            // Storage Methods
+            saveToStorage() {
+                const data = {
+                    tasks: this.tasks.map(task => ({
+                        ...task,
+                        startTime: task.startTime.toISOString(),
+                        dueTime: task.dueTime.toISOString(),
+                        originalDueTime: task.originalDueTime.toISOString(), // Save originalDueTime
+                        createdAt: task.createdAt.toISOString(),
+                        completedAt: task.completedAt ? task.completedAt.toISOString() : null
+                    })),
+                    taskIdCounter: this.taskIdCounter,
+                    mainStopwatch: {
+                        ...this.mainStopwatch,
+                        timerInterval: null // Don't save interval
+                    }
+                };
+                localStorage.setItem('taskflow_data', JSON.stringify(data));
+            }
+            
+            loadFromStorage() {
+                const data = localStorage.getItem('taskflow_data');
+                if (data) {
+                    try {
+                        const parsed = JSON.parse(data);
+                        
+                        // Load tasks
+                        this.tasks = parsed.tasks.map(task => ({
+                            ...task,
+                            startTime: new Date(task.startTime),
+                            dueTime: new Date(task.dueTime),
+                            originalDueTime: new Date(task.originalDueTime || task.dueTime), // Load originalDueTime, default to dueTime if not present
+                            createdAt: new Date(task.createdAt),
+                            completedAt: task.completedAt ? new Date(task.completedAt) : null,
+                            timerInterval: null,
+                            taskStartTime: null,
+                            pausedTimeRemaining: task.pausedTimeRemaining !== undefined ? task.pausedTimeRemaining : null // Load pausedTimeRemaining
+                        }));
+                        
+                        this.taskIdCounter = parsed.taskIdCounter || 0;
+                        
+                        // Load main stopwatch state
+                        if (parsed.mainStopwatch) {
+                            this.mainStopwatch.elapsedTime = parsed.mainStopwatch.elapsedTime || 0;
+                            this.mainStopwatch.laps = parsed.mainStopwatch.laps || [];
+                        }
+                        
+                        this.renderTasks();
+                        this.updateLapsDisplay();
+                        
+                    } catch (error) {
+                        console.error('Error loading from storage:', error);
+                    }
+                }
+            }
+            
+            // Main Stopwatch Methods
+            startMainStopwatch() {
+                if (!this.mainStopwatch.isRunning) {
+                    this.mainStopwatch.startTime = Date.now() - this.mainStopwatch.elapsedTime;
+                    this.mainStopwatch.timerInterval = setInterval(() => this.updateMainDisplay(), 10);
+                    this.mainStopwatch.isRunning = true;
+                    this.startBtn.textContent = 'Running';
+                    this.startBtn.disabled = true;
+                    this.statusIndicator.classList.add('running');
+                    this.lapBtn.disabled = false;
+                    this.showNotification('Stopwatch started! ⏱️', 'success');
+                }
+            }
+            
+            stopMainStopwatch() {
+                if (this.mainStopwatch.isRunning) {
+                    clearInterval(this.mainStopwatch.timerInterval);
+                    this.mainStopwatch.isRunning = false;
+                    this.startBtn.textContent = 'Start';
+                    this.startBtn.disabled = false;
+                    this.statusIndicator.classList.remove('running');
+                    this.lapBtn.disabled = true;
+                    this.saveToStorage();
+                    this.showNotification('Stopwatch stopped! ⏹️', 'info');
+                }
+            }
+            
+            resetMainStopwatch() {
+                this.stopMainStopwatch();
+                this.mainStopwatch.elapsedTime = 0;
+                this.mainStopwatch.laps = [];
+                this.updateMainDisplay();
+                this.updateLapsDisplay();
+                this.saveToStorage();
+                this.showNotification('Stopwatch reset! 🔄', 'info');
+            }
+            
+            lapMainStopwatch() {
+                if (this.mainStopwatch.isRunning) {
+                    const lapTime = this.mainStopwatch.elapsedTime;
+                    this.mainStopwatch.laps.push({
+                        number: this.mainStopwatch.laps.length + 1,
+                        time: lapTime,
+                        timestamp: Date.now()
+                    });
+                    this.updateLapsDisplay();
+                    this.saveToStorage();
+                    this.showNotification(`Lap ${this.mainStopwatch.laps.length} recorded! �`, 'success');
+                }
+            }
+            
+            updateMainDisplay() {
+                this.mainStopwatch.elapsedTime = this.mainStopwatch.isRunning ? 
+                    Date.now() - this.mainStopwatch.startTime : 
+                    this.mainStopwatch.elapsedTime;
+                
+                const formatted = this.formatTime(this.mainStopwatch.elapsedTime);
+                this.timeDisplay.textContent = formatted.time;
+                this.millisecondsDisplay.textContent = formatted.milliseconds;
+            }
+            
+            updateLapsDisplay() {
+                if (this.mainStopwatch.laps.length > 0) {
+                    this.lapsSection.style.display = 'block';
+                    this.lapsList.innerHTML = '';
+                    
+                    // Show laps in reverse order (newest first)
+                    const reversedLaps = [...this.mainStopwatch.laps].reverse();
+                    
+                    reversedLaps.forEach((lap, index) => {
+                        const lapElement = document.createElement('div');
+                        lapElement.className = 'lap-item';
+                        lapElement.style.animationDelay = `${index * 0.1}s`;
+                        
+                        const formatted = this.formatTime(lap.time);
+                        lapElement.innerHTML = `
+                            <span class="lap-number">Lap ${lap.number}</span>
+                            <span class="lap-time">${formatted.time}${formatted.milliseconds}</span>
+                        `;
+                        
+                        this.lapsList.appendChild(lapElement);
+                    });
+                } else {
+                    this.lapsSection.style.display = 'none';
+                }
+            }
+            
+            // Task Management Methods
+            addTask() {
+                const title = this.taskTitle.value.trim();
+                const description = this.taskDescription.value.trim();
+                const startTime = new Date(this.startTime.value);
+                const dueTime = new Date(this.dueTime.value);
+                
+                if (!title || !this.startTime.value || !this.dueTime.value) {
+                    this.showNotification('Please fill in all required fields! ⚠️', 'error');
+                    return;
+                }
+                
+                if (startTime >= dueTime) {
+                    this.showNotification('Due time must be after start time! ⚠️', 'error');
+                    return;
+                }
+                
+                const task = {
+                    id: ++this.taskIdCounter,
+                    title,
+                    description,
+                    startTime,
+                    dueTime,
+                    originalDueTime: dueTime, // Store original due time for progress bar base
+                    createdAt: new Date(),
+                    status: 'pending', // pending, running, paused, completed, expired
+                    elapsedTime: 0, // For tracking active work time
+                    taskStartTime: null, // For tracking current session active work time
+                    completedAt: null,
+                    pausedTimeRemaining: null // To store remaining time when paused
+                };
+                
+                this.tasks.push(task);
+                this.renderTasks();
+                this.clearForm();
+                this.saveToStorage();
+                this.showNotification(`Task "${title}" added successfully! ✅`, 'success');
+            }
+            
+            clearForm() {
+                this.taskTitle.value = '';
+                this.taskDescription.value = '';
+                this.taskTitle.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                this.setDefaultTimes();
+            }
+            
+            renderTasks() {
+                this.tasksContainer.innerHTML = '';
+                
+                // Sort tasks by status and due time
+                const sortedTasks = [...this.tasks].sort((a, b) => {
+                    const statusOrder = { running: 0, pending: 1, paused: 2, expired: 3, completed: 4 };
+                    if (statusOrder[a.status] !== statusOrder[b.status]) {
+                        return statusOrder[a.status] - statusOrder[b.status];
+                    }
+                    return a.dueTime - b.dueTime;
+                });
+                
+                sortedTasks.forEach((task, index) => {
+                    const taskElement = this.createTaskElement(task);
+                    taskElement.classList.add('task-loading');
+                    taskElement.style.animationDelay = `${index * 0.1}s`;
+                    this.tasksContainer.appendChild(taskElement);
+                });
+            }
+            
+            createTaskElement(task) {
+                const taskCard = document.createElement('div');
+                const now = new Date();
+                const timeRemaining = task.dueTime - now; // This is the live remaining time for initial render
+                const totalTime = task.originalDueTime - task.startTime; // Use original for total duration
+                const progress = Math.max(0, Math.min(100, ((totalTime - timeRemaining) / totalTime) * 100));
+                
+                // Determine task class
+                let taskClass = 'task-card';
+                if (task.status === 'expired' || timeRemaining <= 0) {
+                    taskClass += ' urgent';
+                }
+                if (task.status === 'completed') {
+                    taskClass += ' completed';
+                }
+                
+                taskCard.className = taskClass;
+                
+                // Format elapsed time for running tasks
+                let elapsedDisplay = '';
+                if (task.status === 'running' && task.taskStartTime) {
+                    const currentElapsed = Date.now() - task.taskStartTime;
+                    const formatted = this.formatTime(task.elapsedTime + currentElapsed); // total elapsed
+                    elapsedDisplay = `<div style="font-size: 0.85rem; color: var(--text-accent); margin-top: 8px; font-family: 'JetBrains Mono', monospace;">
+                        // Elapsed: ${formatted.time}${formatted.milliseconds}
+                    </div>`;
+                }
+                
+                taskCard.innerHTML = `
+                    <div class="task-header">
+                        <div>
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-description">${task.description}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-timer">
+                        <div class="task-timer-display ${this.getTimerDisplayClass(task, timeRemaining)}" id="timer-${task.id}">
+                            ${this.getTimerDisplayText(task, timeRemaining)}
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">
+                            // ${this.getTimerLabel(task, timeRemaining)}
+                        </div>
+                        ${elapsedDisplay}
+                    </div>
+                    
+                    <div class="task-controls">
+                        <!-- Removed Start button as countdown starts automatically -->
+                        <button class="task-btn task-btn-pause" onclick="taskFlow.togglePauseResumeTask(${task.id})"
+                                ${task.status === 'completed' || task.status === 'expired' ? 'disabled' : ''}>
+                            ${task.status === 'paused' ? 'Resume' : 'Pause'}
+                        </button>
+                        <button class="task-btn task-btn-complete" onclick="taskFlow.completeTask(${task.id})"
+                                ${task.status === 'completed' ? 'disabled' : ''}>
+                            Complete
+                        </button>
+                        <button class="task-btn task-btn-delete" onclick="taskFlow.deleteTask(${task.id})">
+                            Delete
+                        </button>
+                    </div>
+                    
+                    <div class="task-progress">
+                        <div class="task-progress-bar ${this.getProgressBarClass(task, timeRemaining)}" 
+                             style="width: ${progress}%"></div>
+                    </div>
+                    
+                    <div class="task-meta">
+                        <span>// Created: ${task.createdAt.toLocaleString()}</span>
+                        <span class="task-status ${task.status}">${task.status.toUpperCase()}</span>
+                    </div>
+                `;
+                
+                return taskCard;
+            }
+            
+            getTimerDisplayClass(task, timeRemaining) {
+                if (task.status === 'completed') return 'completed';
+                if (task.status === 'running') return 'running';
+                if (task.status === 'paused') return 'paused'; // Add paused class for styling
+                if (timeRemaining <= 0) return 'expired';
+                return 'countdown';
+            }
+            
+            getTimerDisplayText(task, timeRemaining) {
+                if (task.status === 'completed') {
+                    return 'COMPLETED';
+                }
+                if (task.status === 'paused') {
+                    // Display the time remaining captured at the moment of pause
+                    return this.formatCountdown(Math.max(0, task.pausedTimeRemaining));
+                }
+                // For running, pending, expired, display live countdown based on current dueTime
+                return this.formatCountdown(Math.max(0, task.dueTime - new Date()));
+            }
+            
+            getTimerLabel(task, timeRemaining) {
+                if (task.status === 'completed') return 'Task Completed';
+                if (timeRemaining <= 0) return 'Time Expired!';
+                return 'Time Remaining';
+            }
+            
+            getProgressBarClass(task, timeRemaining) {
+                if (task.status === 'completed') return 'completed';
+                if (timeRemaining <= 0) return 'urgent';
+                return '';
+            }
+            
+            togglePauseResumeTask(taskId) {
+                const task = this.tasks.find(t => t.id === taskId);
+                if (!task || task.status === 'completed' || task.status === 'expired') return;
+
+                if (task.status === 'running') {
+                    // Pause the task
+                    task.status = 'paused';
+                    task.pausedTimeRemaining = task.dueTime - Date.now(); // Capture current remaining time
+                    // If it was running, update its active elapsed time
+                    if (task.taskStartTime) {
+                        task.elapsedTime += (Date.now() - task.taskStartTime);
+                        task.taskStartTime = null;
+                    }
+                    this.showNotification(`Task "${task.title}" paused ⏸️`, 'warning');
+                } else if (task.status === 'paused' || task.status === 'pending') {
+                    // Resume the task
+                    task.status = 'running';
+                    // Adjust dueTime: add the duration it was paused
+                    if (task.pausedTimeRemaining !== null) {
+                        // If resuming from a pause, the new due time is now + the remaining time captured at pause
+                        task.dueTime = new Date(Date.now() + task.pausedTimeRemaining);
+                        task.pausedTimeRemaining = null; // Clear it once resumed
+                    } else {
+                        // If starting a pending task for the first time, set taskStartTime
+                        task.taskStartTime = Date.now();
+                    }
+                    this.showNotification(`Task "${task.title}" resumed! ▶️`, 'success');
+                }
+                // No full renderTasks() here, updateTaskTimers will handle DOM updates on next tick
+                this.saveToStorage();
+            }
+            
+            completeTask(taskId) {
+                const task = this.tasks.find(t => t.id === taskId);
+                if (!task || task.status === 'completed') return;
+                
+                task.status = 'completed';
+                task.completedAt = new Date();
+                if (task.taskStartTime) { // If it was running when completed, add current session elapsed time
+                    task.elapsedTime += (Date.now() - task.taskStartTime);
+                }
+                task.taskStartTime = null; // Clear taskStartTime
+                task.pausedTimeRemaining = null; // Clear any paused state
+                
+                // Force a re-render for status change and button disabling
+                this.renderTasks(); 
+                this.saveToStorage();
+                this.showNotification(`Task "${task.title}" completed! 🎉`, 'success');
+            }
+            
+            deleteTask(taskId) {
+                const taskIndex = this.tasks.findIndex(t => t.id === taskId);
+                if (taskIndex === -1) return;
+                
+                const task = this.tasks[taskIndex];
+                this.tasks.splice(taskIndex, 1);
+                this.renderTasks(); // Re-render to remove the task card
+                this.saveToStorage();
+                this.showNotification(`Task "${task.title}" deleted 🗑️`, 'info');
+            }
+            
+            updateTaskTimers() {
+                let shouldReRenderTasks = false; // Flag to indicate if a full re-render is needed
+
+                this.tasks.forEach(task => {
+                    const now = new Date();
+                    // Calculate the actual time remaining based on the task's current dueTime
+                    let currentRemainingCountdown = task.dueTime - now;
+
+                    // Get the timer display element for this specific task
+                    const timerElement = document.getElementById(`timer-${task.id}`);
+                    const progressBarElement = document.querySelector(`#timer-${task.id}`).closest('.task-card')?.querySelector('.task-progress-bar');
+                    const taskStatusElement = document.querySelector(`#timer-${task.id}`).closest('.task-card')?.querySelector('.task-status');
+                    const pauseResumeButton = document.querySelector(`#timer-${task.id}`).closest('.task-card')?.querySelector('.task-btn-pause');
+                    const completeButton = document.querySelector(`#timer-${task.id}`).closest('.task-card')?.querySelector('.task-btn-complete');
+                    const elapsedDisplayElement = document.querySelector(`#timer-${task.id}`).parentElement.querySelector('[style*="Elapsed:"]');
+
+
+                    if (task.status !== 'completed') {
+                        if (timerElement) {
+                            // Update countdown display
+                            if (task.status === 'paused') {
+                                // If paused, display the stored pausedTimeRemaining
+                                timerElement.textContent = this.formatCountdown(Math.max(0, task.pausedTimeRemaining));
+                            } else {
+                                // For running, pending, expired, display live countdown
+                                timerElement.textContent = this.formatCountdown(Math.max(0, currentRemainingCountdown));
+                            }
+                            
+                            // Update timer display class based on status
+                            timerElement.classList.remove('countdown', 'running', 'paused', 'expired', 'completed'); // Remove all first
+                            timerElement.classList.add(this.getTimerDisplayClass(task, currentRemainingCountdown));
+
+                            // Handle expiration
+                            if (currentRemainingCountdown <= 0 && task.status !== 'expired') {
+                                task.status = 'expired';
+                                if (task.taskStartTime) { // If it was running when it expired
+                                    task.elapsedTime += (now - task.taskStartTime);
+                                    task.taskStartTime = null;
+                                }
+                                shouldReRenderTasks = true; // Status change requires re-render to update card class
+                                this.showNotification(`Task "${task.title}" has expired! ⏰`, 'error'); // Fixed syntax error here
+                            }
+                        }
+
+                        // Update elapsed time display for running tasks
+                        if (elapsedDisplayElement) {
+                            if (task.status === 'running' && task.taskStartTime) {
+                                const currentElapsedSession = now - task.taskStartTime;
+                                const totalActiveElapsed = task.elapsedTime + currentElapsedSession;
+                                const formatted = this.formatTime(totalActiveElapsed);
+                                elapsedDisplayElement.innerHTML = `// Elapsed: ${formatted.time}${formatted.milliseconds}`;
+                                elapsedDisplayElement.style.display = 'block';
+                            } else {
+                                elapsedDisplayElement.style.display = 'none';
+                            }
+                        }
+
+                        // Update progress bar
+                        if (progressBarElement) {
+                            const totalPlannedDuration = task.originalDueTime.getTime() - task.startTime.getTime();
+                            let currentActiveTimeSpent = task.elapsedTime; // This holds time from previous running sessions
+
+                            if (task.status === 'running' && task.taskStartTime) {
+                                currentActiveTimeSpent += (now.getTime() - task.taskStartTime);
+                            }
+                            // If paused, currentActiveTimeSpent is just task.elapsedTime
+
+                            const progressPercentage = (currentActiveTimeSpent / totalPlannedDuration) * 100;
+                            
+                            progressBarElement.style.width = `${Math.max(0, Math.min(0, progressPercentage))}%`;
+
+                            // Update progress bar color
+                            progressBarElement.classList.remove('urgent'); // Always remove first
+                            if (currentRemainingCountdown <= 0) { // Still use actual remaining time for urgent styling
+                                progressBarElement.classList.add('urgent');
+                            }
+                        }
+
+                        // Update task status text and button states directly
+                        if (taskStatusElement) {
+                            taskStatusElement.textContent = task.status.toUpperCase();
+                            taskStatusElement.className = `task-status ${task.status}`;
+                        }
+                        if (pauseResumeButton) {
+                            pauseResumeButton.textContent = task.status === 'paused' ? 'Resume' : 'Pause';
+                            pauseResumeButton.disabled = task.status === 'completed' || task.status === 'expired';
+                        }
+                        if (completeButton) {
+                            completeButton.disabled = task.status === 'completed';
+                        }
+                    } else {
+                        // Task is completed, ensure timer and buttons reflect this
+                        if (timerElement) timerElement.textContent = 'COMPLETED';
+                        if (progressBarElement) progressBarElement.style.width = '100%';
+                        if (taskStatusElement) {
+                            taskStatusElement.textContent = 'COMPLETED';
+                            taskStatusElement.className = `task-status completed`;
+                        }
+                        if (pauseResumeButton) pauseResumeButton.disabled = true;
+                        if (completeButton) completeButton.disabled = true;
+                        if (elapsedDisplayElement) elapsedDisplayElement.style.display = 'none'; // Hide elapsed for completed
+                    }
+                });
+                
+                if (shouldReRenderTasks) {
+                    this.renderTasks(); // Only re-render if a task status truly changes (e.g., to expired)
+                    this.saveToStorage();
+                }
+            }
+            
+            formatTime(milliseconds) {
+                const totalSeconds = Math.floor(milliseconds / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                const ms = milliseconds % 1000;
+                
+                return {
+                    time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
+                    milliseconds: `.${ms.toString().padStart(3, '0')}`
+                };
+            }
+            
+            formatCountdown(milliseconds) {
+                if (milliseconds <= 0) {
+                    return "00:00:00";
+                }
+                
+                const totalSeconds = Math.floor(milliseconds / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            showNotification(message, type = 'info') {
+                // Remove existing notifications
+                const existingNotifications = document.querySelectorAll('.notification');
+                existingNotifications.forEach(notification => notification.remove());
+                
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                
+                // Set color based on type
+                const colors = {
+                    success: 'linear-gradient(45deg, var(--success), #16a34a)',
+                    error: 'linear-gradient(45deg, var(--error), #dc2626)',
+                    info: 'linear-gradient(45deg, var(--info), #2563eb)',
+                    warning: 'linear-gradient(45deg, var(--warning), #d97706)'
+                };
+                
+                notification.style.background = colors[type] || colors.info;
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                // Remove notification after 4 seconds
+                setTimeout(() => {
+                    notification.style.animation = 'slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 400);
+                }, 4000);
+            }
+            
+            // Auto-update all task timers
+            startGlobalTimer() {
+                setInterval(() => {
+                    this.updateTaskTimers();
+                }, 1000);
+            }
+        }
+        
+        // Initialize the application
+        let taskFlow;
+        document.addEventListener('DOMContentLoaded', () => {
+            taskFlow = new TaskFlowApp();
+        });
+        
+        // Prevent accidental page refresh when tasks are running
+        window.addEventListener('beforeunload', (e) => {
+            const runningTasks = taskFlow.tasks.filter(task => task.status === 'running');
+            if (runningTasks.length > 0 || taskFlow.mainStopwatch.isRunning) {
+                e.preventDefault();
+                e.returnValue = 'You have running timers. Are you sure you want to leave?';
+            }
+        });
+    </script>
+</body>
+</html>
+�
